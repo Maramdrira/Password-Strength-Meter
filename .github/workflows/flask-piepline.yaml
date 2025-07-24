@@ -56,7 +56,6 @@ jobs:
         python -c "from password_strength_checker import app, check_strength; print('All imports successful')"
 
 
-    # STAGE 3: Deploy to Azure
   deploy:
     needs: build
     if: github.ref == 'refs/heads/main'
