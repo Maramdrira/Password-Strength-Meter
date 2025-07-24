@@ -1,6 +1,3 @@
-from flask import Flask
+from .app import app, check_strength
 
-app = Flask(__name__)
-
-# Import routes after app creation to avoid circular imports
-from . import routes
+__all__ = ['app', 'check_strength']
