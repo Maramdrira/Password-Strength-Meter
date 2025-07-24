@@ -33,12 +33,11 @@ jobs:
       run: |
         python -m pytest tests/ --cov=password_strength_checker --cov-report=xml
       env:
-        # Ensure tests can find templates
         FLASK_APP: password_strength_checker.app
         TEMPLATES_FOLDER: ${{ github.workspace }}/templates
 
     - name: Upload coverage report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: coverage.xml
@@ -63,7 +62,6 @@ jobs:
 
     - name: Create deployment package
       run: |
-        # Include only necessary files
         zip -r deploy.zip \
           password_strength_checker \
           templates \
@@ -72,7 +70,7 @@ jobs:
           -x '*.pyc' '*__pycache__*'
 
     - name: Upload deployment package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: deploy-package
         path: deploy.zip
@@ -82,9 +80,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download deployment package
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: deploy-package
+        path: .
 
     - name: Login to Azure
       uses: azure/login@v1
@@ -111,5 +110,5 @@ jobs:
 
     - name: Verify deployment
       run: |
-        echo "Deployment completed. App available at:"
-        echo "https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"pip install -e
+        echo "Deployment successful!"
+        echo "App URL: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
