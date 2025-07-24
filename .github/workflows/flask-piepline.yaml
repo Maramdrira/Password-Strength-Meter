@@ -60,28 +60,16 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-        
-    - name: Deploy to Azure App Service
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: 'password-strength-checker'
-        package: .
-        runtime-stack: 'PYTHON|3.11'
-        startup-command: 'gunicorn --bind=0.0.0.0 --timeout 600 app:app'
-        
-    - name: Configure Environment Variables
-      run: |
-        az webapp config appsettings set \
-          --name password-strength-checker \
-          --resource-group your-resource-group-name \
-          --settings \
-            MIN_WEAK=6 \
-            MIN_STRONG=10 \
-            SPECIAL_CHARS="!@#$%^&*" \
-            WEBSITES_PORT=8000
+      - uses: actions/checkout@v4
+      
+      - name: Login with User Credentials
+        run: |
+          az login --service-principal -u ${{ secrets.AZURE_USERNAME }} -p ${{ secrets.AZURE_PASSWORD }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Deploy to App Service
+        run: |
+          az webapp up \
+            --name password-strength-checker \
+            --resource-group flask-app-rg \
+            --runtime "PYTHON|3.11"
