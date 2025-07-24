@@ -67,9 +67,16 @@ jobs:
           az login --tenant ${{ secrets.AZURE_TENANT_ID }}
           az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       
-      - name: Deploy to App Service
+      - name: Deploy to Azure
         run: |
-          az webapp up \
+          az webapp config appsettings set \
             --name password-strength-checker \
             --resource-group flask-app-rg \
-            --runtime "PYTHON|3.11"
+            --settings \
+              SCM_DO_BUILD_DURING_DEPLOYMENT=true \
+              WEBSITES_PORT=8000
+
+          az webapp deployment source config-zip \
+            --name password-strength-checker \
+            --resource-group flask-app-rg \
+            --src ./deploy.zip
