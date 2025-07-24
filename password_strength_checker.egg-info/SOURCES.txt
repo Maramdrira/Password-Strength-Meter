@@ -1,5 +1,8 @@
 README.md
 setup.py
+password_strength_checker/__init__.py
+password_strength_checker/app.py
+password_strength_checker/utils.py
 password_strength_checker.egg-info/PKG-INFO
 password_strength_checker.egg-info/SOURCES.txt
 password_strength_checker.egg-info/dependency_links.txt
