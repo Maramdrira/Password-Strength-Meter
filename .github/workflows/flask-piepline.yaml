@@ -54,6 +54,8 @@ jobs:
     - name: Verify imports
       run: |
         python -c "from password_strength_checker import app, check_strength; print('All imports successful')"
+
+
   # STAGE 3: Deploy to Azure
   deploy:
     needs: build
@@ -67,16 +69,29 @@ jobs:
           az login --tenant ${{ secrets.AZURE_TENANT_ID }}
           az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       
-      - name: Deploy to Azure
+      - name: Create deployment package
+        run: |
+          # Create ZIP excluding unnecessary files
+          zip -r deploy.zip . -x '.venv/*' -x '.git/*' -x '*.pyc' -x '__pycache__/*'
+          
+      - name: Configure app settings
         run: |
           az webapp config appsettings set \
             --name password-strength-checker \
             --resource-group flask-app-rg \
             --settings \
               SCM_DO_BUILD_DURING_DEPLOYMENT=true \
-              WEBSITES_PORT=8000
-
-          az webapp deployment source config-zip \
+              WEBSITES_PORT=8000 \
+              MIN_WEAK=6 \
+              MIN_STRONG=10 \
+              SPECIAL_CHARS="!@#$%^&*" \
+              FLASK_ENV=production
+      
+      - name: Deploy using modern CLI command
+        run: |
+          az webapp deploy \
             --name password-strength-checker \
             --resource-group flask-app-rg \
-            --src ./deploy.zip
+            --src-path ./deploy.zip \
+            --type zip \
+            --verbose
