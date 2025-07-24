@@ -84,36 +84,21 @@ jobs:
         name: deploy-package
         path: deploy.zip
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write  # THIS IS CRUCIAL FOR AZURE LOGIN
+deploy:
+  runs-on: ubuntu-latest
+  permissions:
+    contents: read
+  steps:
+    - uses: actions/checkout@v4
     
-    steps:
-    - name: Download deployment package
-      uses: actions/download-artifact@v4
-      with:
-        name: deploy-package
-
     - name: Login to Azure
       uses: azure/login@v1
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        enable-AzPSSession: true  # Enable PowerShell session if needed
-
-    - name: Deploy to Azure Web App
+        creds: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+    
+    - name: Deploy to Web App
       uses: azure/webapps-deploy@v2
       with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        resource-group: ${{ env.AZURE_RESOURCE_GROUP }}
-        package: deploy.zip
-
-
-    - name: Verify deployment
-      run: |
-        echo "Deployment successful!"
-        echo "App URL: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
+        app-name: 'password-strength-checker'
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+        package: ./deploy.zip
