@@ -38,15 +38,22 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Validate requirements
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install package and dependencies
       run: |
+        pip install -e .
         pip install -r requirements.txt
-        pip check  # Verify no dependency conflicts
         
-    - name: Verify Flask app starts
+    - name: Validate requirements
+      run: pip check
+    
+    - name: Verify imports
       run: |
-        python -c "from app import app; print('App imported successfully')"
-
+        python -c "from password_strength_checker import app, check_strength; print('All imports successful')"
   # STAGE 3: Deploy to Azure
   deploy:
     needs: build
