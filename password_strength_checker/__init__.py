@@ -1,3 +1,9 @@
-from .app import app, check_strength
+from flask import Flask
+app = Flask(__name__)  # This must be named 'app' unless you configure otherwise
 
-__all__ = ['app', 'check_strength']
+@app.route('/')
+def hello():
+    return "Hello World!"
+
+if __name__ == "__main__":
+    app.run()  # Only for local development
