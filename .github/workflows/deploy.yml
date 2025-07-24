@@ -87,12 +87,15 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # THIS IS CRUCIAL FOR AZURE LOGIN
+    
     steps:
     - name: Download deployment package
       uses: actions/download-artifact@v4
       with:
         name: deploy-package
-        path: .
 
     - name: Login to Azure
       uses: azure/login@v1
@@ -100,15 +103,7 @@ jobs:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-    - name: Configure App Settings
-      run: |
-        az webapp config appsettings set \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-          --settings \
-            SCM_DO_BUILD_DURING_DEPLOYMENT=true \
-            WEBSITES_PORT=8000
+        enable-AzPSSession: true  # Enable PowerShell session if needed
 
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
@@ -116,6 +111,7 @@ jobs:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         resource-group: ${{ env.AZURE_RESOURCE_GROUP }}
         package: deploy.zip
+
 
     - name: Verify deployment
       run: |
