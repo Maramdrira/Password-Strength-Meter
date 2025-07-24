@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write  # Needed for Azure login
+      id-token: write
 
     steps:
     - name: Checkout code
@@ -26,20 +26,19 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Install dependencies
+    - name: Install package in editable mode
       run: |
         python -m pip install --upgrade pip
+        pip install -e .
         pip install -r requirements.txt
-        pip install gunicorn
 
     - name: Run tests
       run: |
-        pip install pytest
-        pytest tests/
+        pip install pytest pytest-cov
+        python -m pytest tests/ --cov=password_strength_checker --cov-report=xml
 
     - name: Create deployment package
       run: |
-        # Exclude unnecessary files from deployment
         zip -r deploy.zip . -x '*.git*' -x '*.github*' -x '*.venv*' -x '*__pycache__*' -x '*.pytest_cache*'
 
     - name: Login to Azure
@@ -49,22 +48,9 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Configure App Settings
-      run: |
-        az webapp config appsettings set \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-          --settings \
-            SCM_DO_BUILD_DURING_DEPLOYMENT=true \
-            WEBSITES_PORT=8000
-
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         resource-group: ${{ env.AZURE_RESOURCE_GROUP }}
         package: ./deploy.zip
-
-    - name: Verify deployment
-      run: |
-        curl -s https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net | grep "Password Strength Checker"

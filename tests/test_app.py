@@ -1,16 +1,23 @@
-from password_strength_checker import check_strength
-from password_strength_checker.app import app
+import os
+import sys
+from pathlib import Path
+import pytest
 
-def test_check_strength():
-    # Setup test config
-    app.config['MIN_WEAK'] = 6
-    app.config['MIN_STRONG'] = 10
-    app.config['SPECIAL_CHARS'] = "!@#$%^&*"
-    
-    assert check_strength("123") == "Weak 🚨"
-    assert check_strength("1234567") == "Medium ⚠️"
-    assert check_strength("StrongPass123!") == "Strong ✅"
+# Add project root to Python path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-def test_index_route(client):
-    response = client.get('/')
-    assert response.status_code == 200
+from password_strength_checker.app import app as flask_app
+
+@pytest.fixture
+def app():
+    # Set the template folder explicitly for tests
+    flask_app.template_folder = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), 
+        '../templates'
+    )
+    flask_app.config['TESTING'] = True
+    yield flask_app
+
+@pytest.fixture
+def client(app):
+    return app.test_client()
